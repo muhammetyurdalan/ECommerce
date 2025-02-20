@@ -1,5 +1,7 @@
 import graphene
 from graphene_django.types import ObjectType
+from django.conf import settings
+from django.core.mail import send_mail, EmailMessage
 from graphql_jwt.mutations import JSONWebTokenMutation
 from django.contrib.auth.models import User
 from products.utils import set_attributes
@@ -76,11 +78,35 @@ class GetToken(JSONWebTokenMutation):
     def resolve(cls, root, info, *args, **kwargs):
         return cls(user=info.context.user)
 
+def send_verify_mail(user):
+    url = f"{settings.HOST}/verify_user/{user.id}/"
+    subject = 'Verify Account'
+    message = f'<p>Click on the link to verify your account</p><br><a href="{url}">Verify</a>'
+    from_mail = settings.EMAIL_HOST_USER
+    to_mail = [user.email]
+    email = EmailMessage(subject, message, from_mail, to_mail)
+    email.content_subtype = 'html'
+    email.send()
+
+class VerifyUser(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        
+    success = graphene.Boolean()
+    
+    #@roles_required('MANAGER')
+    def mutate(self,info,**kwargs):
+        id = kwargs.get('id')
+        user = User.objects.get(pk=id)
+        send_verify_mail(user)
+        return VerifyUser(success=True)
+
 class Mutation(ObjectType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     get_token = GetToken.Field()
+    verify_user = VerifyUser.Field()
     
     
 schema = graphene.Schema(query=Query, mutation=Mutation)
