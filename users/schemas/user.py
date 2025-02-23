@@ -79,9 +79,11 @@ class GetToken(JSONWebTokenMutation):
         return cls(user=info.context.user)
 
 def send_verify_mail(user):
-    url = f"{settings.HOST}/verify_user/{user.id}/"
-    subject = 'Verify Account'
-    message = f'<p>Click on the link to verify your account</p><br><a href="{url}">Verify</a>'
+    from graphapi.content.verify import template
+    url = f"{settings.BACKEND}/verify_user/{user.id}/"
+    subject = 'Hesap Doğrulama'
+    name = user.first_name + " " + user.last_name
+    message = template.replace("[name]", name).replace("[endpoint]", url)
     from_mail = settings.EMAIL_HOST_USER
     to_mail = [user.email]
     email = EmailMessage(subject, message, from_mail, to_mail)
@@ -90,14 +92,14 @@ def send_verify_mail(user):
 
 class VerifyUser(graphene.Mutation):
     class Arguments:
-        id = graphene.Int(required=True)
+        username = graphene.String(required=True)
         
     success = graphene.Boolean()
     
     #@roles_required('MANAGER')
     def mutate(self,info,**kwargs):
-        id = kwargs.get('id')
-        user = User.objects.get(pk=id)
+        username = kwargs.get('username')
+        user = User.objects.get(username=username)
         send_verify_mail(user)
         return VerifyUser(success=True)
 

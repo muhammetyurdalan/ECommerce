@@ -23,7 +23,8 @@ ALLOWED_HOSTS = ['*']
 APPEND_SLASH=False
 
 # Urls
-HOST = "http://127.0.0.1:8000"
+BACKEND = "http://127.0.0.1:8000"
+FRONTEND = "http://127.0.0.1:8000"
 
 # Graphene Settings
 GRAPHENE = {
