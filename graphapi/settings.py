@@ -20,7 +20,8 @@ DEBUG = True
 WSGI_APPLICATION = 'graphapi.wsgi.application'
 ROOT_URLCONF = 'graphapi.urls'
 ALLOWED_HOSTS = ['*']
-APPEND_SLASH=False
+APPEND_SLASH = False
+AUTH_USER_MODEL = 'users.User'
 
 # Urls
 BACKEND = "http://127.0.0.1:8000"
@@ -46,11 +47,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-     "graphene_django",
-     'corsheaders',
-     "products",
-     "users",
-     "django_filters"
+    'graphene_django',
+    'corsheaders',
+    'users',
+    'products',
+    'django_filters'
 ]
 
 # Middlewares

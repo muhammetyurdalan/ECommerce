@@ -1,9 +1,10 @@
 from django.contrib.auth.backends import ModelBackend
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from graphql_jwt.exceptions import JSONWebTokenError
 from graphql_jwt.utils import get_credentials, get_payload
 from graphql_jwt.settings import jwt_settings
 
+User = get_user_model()
 class AuthenticationBackend(ModelBackend):
     def authenticate(self, info, *args, **kwargs):
         username = kwargs.get('username')

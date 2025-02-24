@@ -1,13 +1,15 @@
 import graphene
 from graphene_django.types import ObjectType
 from django.conf import settings
-from django.core.mail import send_mail, EmailMessage
+from django.core.mail import EmailMessage
 from graphql_jwt.mutations import JSONWebTokenMutation
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from products.utils import set_attributes
 from products.decorators import roles_required
 from users.types import UserType
 from users.inputs import CreateUserInput, UpdateUserInput
+
+User = get_user_model()
 
 class Query(ObjectType):
     user = graphene.Field(UserType,

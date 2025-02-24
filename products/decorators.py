@@ -4,7 +4,7 @@ def roles_required(*roles):
     def check_perm(user, *args, **kwargs):
         if not user.is_active:
             return False
-        if user.profile.role in roles:
+        if user.role in roles:
             return True
         return False
     return user_passes_test(check_perm)
