@@ -16,6 +16,9 @@ from datetime import timedelta
 # Base Settings
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=0kgm2ut2c06m^=g8kr^a)6!exta-0+4qrn^tdd0((%x_m4=r('
+FERNET_KEY = '1Q2w3e4r5t6y7u8i9o0p1Q2w3e4r5t6y7u8i9o0p1Q2w3e4r5t6y7u8i9o0p'
+JWT_SECRET = SECRET_KEY
+JWT_ALGORITHM = 'HS256'
 DEBUG = True
 WSGI_APPLICATION = 'graphapi.wsgi.application'
 ROOT_URLCONF = 'graphapi.urls'
@@ -24,8 +27,8 @@ APPEND_SLASH = False
 AUTH_USER_MODEL = 'users.User'
 
 # Urls
-BACKEND = "http://127.0.0.1:8000"
-FRONTEND = "http://127.0.0.1:8000"
+BACKEND_URL = "http://127.0.0.1:8000"
+FRONTEND_URL = "http://127.0.0.1:8000"
 
 # Graphene Settings
 GRAPHENE = {

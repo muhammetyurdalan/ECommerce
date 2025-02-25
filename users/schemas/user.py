@@ -1,10 +1,8 @@
 import graphene
 from graphene_django.types import ObjectType
-from django.conf import settings
-from django.core.mail import EmailMessage
 from graphql_jwt.mutations import JSONWebTokenMutation
 from django.contrib.auth import get_user_model
-from products.utils import set_attributes
+from products.utils import decode_secret, send_verify_mail, set_attributes
 from products.decorators import roles_required
 from users.types import UserType
 from users.inputs import CreateUserInput, UpdateUserInput
@@ -79,18 +77,7 @@ class GetToken(JSONWebTokenMutation):
     @classmethod
     def resolve(cls, root, info, *args, **kwargs):
         return cls(user=info.context.user)
-
-def send_verify_mail(user):
-    from graphapi.content.verify import template
-    url = f"{settings.BACKEND}/verify_user/{user.id}/"
-    subject = 'Hesap Doğrulama'
-    name = user.first_name + " " + user.last_name
-    message = template.replace("[name]", name).replace("[endpoint]", url)
-    from_mail = settings.EMAIL_HOST_USER
-    to_mail = [user.email]
-    email = EmailMessage(subject, message, from_mail, to_mail)
-    email.content_subtype = 'html'
-    email.send()
+    
 
 class VerifyUser(graphene.Mutation):
     class Arguments:
@@ -105,12 +92,33 @@ class VerifyUser(graphene.Mutation):
         send_verify_mail(user)
         return VerifyUser(success=True)
 
+
+class ResetPassword(graphene.Mutation):
+    class Arguments:
+        secret = graphene.String(required=True)
+        password = graphene.String(required=True)
+        
+    success = graphene.Boolean()
+    
+    #@roles_required('MANAGER')
+    def mutate(self,info,**kwargs):
+        password = kwargs.get('password')
+        uuid = decode_secret(kwargs.get('secret'))
+        try:
+            user = User.objects.get(uuid=uuid)
+        except User.DoesNotExist:
+            return ResetPassword(success=False)
+        user.set_password(password)
+        user.save()
+        return ResetPassword(success=True)
+    
 class Mutation(ObjectType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
     delete_user = DeleteUser.Field()
     get_token = GetToken.Field()
     verify_user = VerifyUser.Field()
+    reset_password = ResetPassword.Field()
     
     
 schema = graphene.Schema(query=Query, mutation=Mutation)
