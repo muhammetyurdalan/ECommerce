@@ -1,9 +1,14 @@
+import json
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
 from cryptography.fernet import Fernet
+from jinja2 import Environment, FileSystemLoader
 from jwt import encode, decode, DecodeError, ExpiredSignatureError
 from django.core.mail import EmailMessage
 
 fernet = Fernet(settings.FERNET_KEY)
+templates_env = Environment(loader=FileSystemLoader('graphapi/templates'))
 
 def set_attributes(instance, data, exclude=[]):
     for key in data:
@@ -31,18 +36,25 @@ def decode_secret(secret):
         raise Exception("Token has expired")
     return data
 
-
+            
 def send_verify_mail(user):
-    from graphapi.content.verify import template
-    token = encode_secret(user.uuid)
-    url = f"{settings.FRONTEND_URL}/reset_password/{token}/"
+    template = templates_env.get_template('verify.html')
+    payload = {
+        'uuid': str(user.uuid),
+        'exp': timezone.now() + timedelta(minutes=10),
+    }
+    token = encode_secret(payload)
+    url = f"{settings.BACKEND_URL}/verify_user/{token}/"
     subject = 'Hesap Doğrulama'
-    message = template.replace("[name]", user.name).replace("[endpoint]", url)
+    data = {
+        "name": user.name,
+        "endpoint": url
+    }
+    message = template.render(data=data)
     from_mail = settings.EMAIL_HOST_USER
     to_mail = [user.email]
     email = EmailMessage(subject, message, from_mail, to_mail)
     email.content_subtype = 'html'
     email.send()
-            
             
     

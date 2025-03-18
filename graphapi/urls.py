@@ -8,5 +8,5 @@ from users.views import verify_user
 
 urlpatterns = [
     path("graphql/", csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))),
-    path("verify_user/<int:user_id>/", verify_user),
+    path("verify_user/<str:secret>/", verify_user),
 ]
