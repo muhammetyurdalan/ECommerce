@@ -9,4 +9,4 @@ RoleChoices = graphene.Enum.from_enum(models.Role)
 class UserType(DjangoObjectType):
     class Meta:
         model = User
-        fields = ('id', 'username', 'role', 'name', 'email')
+        fields = ('id', 'username', 'role', 'first_name', 'last_name', 'email')

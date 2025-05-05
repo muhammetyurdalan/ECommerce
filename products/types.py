@@ -35,3 +35,11 @@ class ProductVariationType(DjangoObjectType):
       
     class Meta:
         model = models.ProductVariation
+
+class OrderType(DjangoObjectType):
+    class Meta:
+        model = models.Order
+
+class OrderItemType(DjangoObjectType):
+    class Meta:
+        model = models.OrderItem

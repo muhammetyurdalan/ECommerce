@@ -42,3 +42,21 @@ class CreateProductVariationInput(graphene.InputObjectType):
 class UpdateProductVariationInput(CreateProductVariationInput):
     product_id = graphene.Int()
     variation_option_id = graphene.Int()
+
+
+class CreateOrderItemInput(graphene.InputObjectType):
+    product_variation_id = graphene.Int(required=True)
+    quantity = graphene.Int(required=True)
+    total_price = graphene.Decimal(required=True)
+
+
+class CreateOrderInput(graphene.InputObjectType):
+    total_price = graphene.Decimal(required=True)
+    address = graphene.String(required=True)
+    city_id = graphene.Int(required=True)
+    order_items = graphene.List(CreateOrderItemInput, required=True)
+    card_holder_name = graphene.String(required=True)
+    card_number = graphene.String(required=True)
+    expire_year = graphene.String(required=True)
+    expire_month = graphene.String(required=True)
+    cvv = graphene.String(required=True)
