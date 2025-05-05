@@ -11,8 +11,6 @@ class Role(models.TextChoices):
     ADMIN = 'ADMIN', 'ADMİN'
     
 
-
-
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **kwargs):
         user = self.model(username=username, **kwargs)
@@ -48,4 +46,4 @@ class User(AbstractBaseUser):
         db_table = 'user'
 
     def __str__(self):
-        return self.name
+        return self.email

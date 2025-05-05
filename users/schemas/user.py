@@ -14,12 +14,12 @@ class Query(ObjectType):
                 id=graphene.Int(required=True))
     users = graphene.List(UserType)
     
-    @roles_required('MANAGER')
+    @roles_required('MANAGER', 'ADMIN')
     def resolve_user(root, info, **kwargs):
         id = kwargs.get('id')
         return User.objects.get(pk=id)
         
-    @roles_required('MANAGER')
+    @roles_required('MANAGER', 'ADMIN')
     def resolve_users(root, info, **kwargs):
         return User.objects.all()
 
@@ -29,7 +29,7 @@ class CreateUser(graphene.Mutation):
         data = CreateUserInput(required=True)
     user = graphene.Field(UserType)
     
-    @roles_required('MANAGER')
+    @roles_required('MANAGER', 'ADMIN')
     def mutate(root, info, *args, **kwargs):
         data = kwargs.get('data')
         user = User()
@@ -45,7 +45,7 @@ class UpdateUser(graphene.Mutation):
         data = UpdateUserInput(required=True)
     user = graphene.Field(UserType)
     
-    @roles_required('MANAGER')
+    @roles_required('MANAGER', 'ADMIN')
     def mutate(root, info, *args, **kwargs):
         id = kwargs.get('id')
         data = kwargs.get('data')
@@ -63,7 +63,7 @@ class DeleteUser(graphene.Mutation):
 
     user = graphene.Field(UserType)
 
-    @roles_required('MANAGER')
+    @roles_required('MANAGER', 'ADMIN')
     def mutate(root, info, **kwargs):
         id = kwargs.get('id')
         user = User.objects.get(pk=id)
@@ -100,7 +100,7 @@ class ResetPassword(graphene.Mutation):
         
     success = graphene.Boolean()
     
-    #@roles_required('MANAGER')
+    @roles_required('MANAGER')
     def mutate(self,info,**kwargs):
         password = kwargs.get('password')
         uuid = decode_secret(kwargs.get('secret'))
