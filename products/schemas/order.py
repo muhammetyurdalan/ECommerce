@@ -4,7 +4,7 @@ from graphene import ObjectType
 from products.decorators import roles_required
 from products.models import Order, OrderItem
 from products.types import OrderType
-from products.inputs import CreateOrderInput
+from products.inputs import CreateOrderInput, UpdateOrderInput
 from products.utils import set_attributes
 
 
@@ -56,10 +56,49 @@ class CreateOrder(graphene.Mutation):
                 order_item.product_variation.stock -= order_item.quantity
                 order_item.product_variation.save()
         return CreateOrder(order=order)
+    
+class CancelOrder(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    order = graphene.Field(OrderType)
+
+    @roles_required('CUSTOMER')
+    def mutate(self, info, **kwargs):
+        id = kwargs.get('id')
+        order = Order.objects.get(pk=id)
+        assert order.status == 'PROCESSING', "Order cannot be cancelled"
+        response = psp.cancel_payment(order)
+        assert response['status'] == 'success', "Payment cancellation failed"
+        order.status = 'CANCELLED'
+        order.save()
+        for order_item in order.items.all():
+            order_item.product_variation.stock += order_item.quantity
+            order_item.product_variation.save()
+        return CancelOrder(order=order)
+    
+class UpdateOrder(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        data = UpdateOrderInput(required=True)
+
+    order = graphene.Field(OrderType)
+
+    @roles_required('CUSTOMER')
+    def mutate(self, info, **kwargs):
+        id = kwargs.get('id')
+        data = kwargs.get('data')
+        order = Order.objects.get(pk=id)
+        assert order.status == 'PROCESSING', "Order cannot be updated"
+        set_attributes(order, data)
+        order.save()
+        return UpdateOrder(order=order)
 
 
 class Mutation(graphene.ObjectType):
     create_order = CreateOrder.Field()
+    cancel_order = CancelOrder.Field()
+    update_order = UpdateOrder.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

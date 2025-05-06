@@ -22,14 +22,13 @@ def get_basket_items(order):
     for item in items:
         product = item.product_variation.product
         price = item.total_price * item.quantity
-        basket_items.append(
-            {
-                "id": item.id,
-                "price": str(price),
-                "name": f"Product #{product.id}",
-                "category1": product.category.name,
-                "itemType": "PHYSICAL"
-            })
+        basket_items.append({
+            "id": item.id,
+            "price": str(price),
+            "name": f"Product #{product.id}",
+            "category1": product.category.name,
+            "itemType": "PHYSICAL"
+        })
     return basket_items
 
 
@@ -66,7 +65,7 @@ def get_payment_data(data, customer, order):
         "basketId": str(order.id),
         "paymentChannel": "WEB",
         "paymentGroup": "PRODUCT",
-        "conversationId": "ottobus_transfer",
+        "conversationId": "ecommerce",
         "paymentCard": card,
         "buyer": buyer,
         "shippingAddress": address,
@@ -83,5 +82,17 @@ def payment_process(data, customer, order):
     print(data)
     payment = iyzipay.Payment()
     response = payment.create(data, HEADERS)
+    response = json.load(response)
+    return response
+
+
+def cancel_payment(order):
+    request = {
+    "locale": "tr",
+    'conversationId': 'ecommerce',
+    'paymentId': order.payment_id,
+    }
+    cancel = iyzipay.Cancel()
+    response = cancel.create(request, HEADERS)
     response = json.load(response)
     return response

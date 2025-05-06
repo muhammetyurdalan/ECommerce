@@ -60,3 +60,8 @@ class CreateOrderInput(graphene.InputObjectType):
     expire_year = graphene.String(required=True)
     expire_month = graphene.String(required=True)
     cvv = graphene.String(required=True)
+
+
+class UpdateOrderInput(graphene.InputObjectType):
+    address = graphene.String()
+    city_id = graphene.Int()
