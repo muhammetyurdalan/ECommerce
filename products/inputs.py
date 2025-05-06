@@ -1,5 +1,7 @@
 import graphene
 
+from products.types import OrderStatusChoices
+
 
 class CreateProductInput(graphene.InputObjectType):
     name = graphene.String(required=True)
@@ -65,3 +67,10 @@ class CreateOrderInput(graphene.InputObjectType):
 class UpdateOrderInput(graphene.InputObjectType):
     address = graphene.String()
     city_id = graphene.Int()
+    
+class AdminUpdateOrderInput(graphene.InputObjectType):
+    total_price = graphene.Decimal()
+    address = graphene.String()
+    city_id = graphene.Int()
+    order_items = graphene.List(CreateOrderItemInput)
+    status = OrderStatusChoices()

@@ -3,6 +3,9 @@ from graphene_django.types import DjangoObjectType
 from graphene import relay
 import products.models as models
 
+
+OrderStatusChoices = graphene.Enum.from_enum(models.OrderStatus)
+
 class ProductType(DjangoObjectType):
     real_id = graphene.Int(source="id")
     name = graphene.String()
@@ -37,6 +40,7 @@ class ProductVariationType(DjangoObjectType):
         model = models.ProductVariation
 
 class OrderType(DjangoObjectType):
+    status = OrderStatusChoices()
     class Meta:
         model = models.Order
 

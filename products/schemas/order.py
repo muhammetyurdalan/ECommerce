@@ -4,7 +4,7 @@ from graphene import ObjectType
 from products.decorators import roles_required
 from products.models import Order, OrderItem
 from products.types import OrderType
-from products.inputs import CreateOrderInput, UpdateOrderInput
+from products.inputs import AdminUpdateOrderInput, CreateOrderInput, UpdateOrderInput
 from products.utils import set_attributes
 
 
@@ -93,12 +93,29 @@ class UpdateOrder(graphene.Mutation):
         set_attributes(order, data)
         order.save()
         return UpdateOrder(order=order)
+    
+class AdminUpdateOrder(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        data = AdminUpdateOrderInput(required=True)
+
+    order = graphene.Field(OrderType)
+
+    @roles_required('ADMIN')
+    def mutate(self, info, **kwargs):
+        id = kwargs.get('id')
+        data = kwargs.get('data')
+        order = Order.objects.get(pk=id)
+        set_attributes(order, data)
+        order.save()
+        return AdminUpdateOrder(order=order)
 
 
 class Mutation(graphene.ObjectType):
     create_order = CreateOrder.Field()
     cancel_order = CancelOrder.Field()
     update_order = UpdateOrder.Field()
+    admin_update_order = AdminUpdateOrder.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
