@@ -2,10 +2,14 @@ import graphene
 import graphapi.psp as psp
 from graphene import ObjectType
 from products.decorators import roles_required
-from products.models import Order, OrderItem
+from products.models import Order, OrderItem, ProductVariation
 from products.types import OrderType
 from products.inputs import AdminUpdateOrderInput, CreateOrderInput, UpdateOrderInput
 from products.utils import set_attributes
+
+manager= Order.objects
+item_manger= OrderItem.objects
+variation_manager= ProductVariation.objects
 
 
 class Query(ObjectType):
@@ -21,6 +25,20 @@ class Query(ObjectType):
         return Order.objects.get(pk=id)
 
 
+def decrease_stock(order):
+    for order_item in order.items.all():
+        product_variation = order_item.product_variation
+        product_variation.stock -= order_item.quantity
+        product_variation.save()
+
+
+def increase_stock(order):
+    for order_item in order.items.all():
+        product_variation = order_item.product_variation
+        product_variation.stock += order_item.quantity
+        product_variation.save()
+
+
 class CreateOrder(graphene.Mutation):
     class Arguments:
         data = CreateOrderInput(required=True)
@@ -31,6 +49,7 @@ class CreateOrder(graphene.Mutation):
     def mutate(self, info, **kwargs):
         customer = info.context.user
         data = kwargs.get('data')
+        order_items = []
         order = Order.objects.create(
             user=customer, 
             address=data.address,
@@ -38,25 +57,24 @@ class CreateOrder(graphene.Mutation):
             total_price=data.total_price
         )
         for item_data in data.order_items:
-            order_item = OrderItem()
+            order_item = OrderItem(order=order)
             set_attributes(order_item, item_data)
-            order_item.order = order
-            order_item.save()
-            order_item.product_variation.stock -= item_data.quantity
-            order_item.product_variation.save()
+            order_items.append(order_item)
+            variation = variation_manager.get(pk=item_data.product_variation_id)
+            assert variation.stock >= item_data.quantity, "Not enough stock"
+        item_manger.bulk_create(order_items)
         response = psp.payment_process(data, customer, order)
         if response['status'] == 'success':
             order.status = 'PROCESSING'
             order.payment_id = response['paymentId']
             order.save()
+            decrease_stock(order)
         else:
             order.status = 'FAILED'
             order.save()
-            for order_item in order.items.all():
-                order_item.product_variation.stock -= order_item.quantity
-                order_item.product_variation.save()
         return CreateOrder(order=order)
     
+
 class CancelOrder(graphene.Mutation):
     class Arguments:
         id = graphene.Int(required=True)
@@ -72,11 +90,10 @@ class CancelOrder(graphene.Mutation):
         assert response['status'] == 'success', "Payment cancellation failed"
         order.status = 'CANCELLED'
         order.save()
-        for order_item in order.items.all():
-            order_item.product_variation.stock += order_item.quantity
-            order_item.product_variation.save()
+        increase_stock(order)
         return CancelOrder(order=order)
     
+
 class UpdateOrder(graphene.Mutation):
     class Arguments:
         id = graphene.Int(required=True)
@@ -93,7 +110,8 @@ class UpdateOrder(graphene.Mutation):
         set_attributes(order, data)
         order.save()
         return UpdateOrder(order=order)
-    
+
+
 class AdminUpdateOrder(graphene.Mutation):
     class Arguments:
         id = graphene.Int(required=True)

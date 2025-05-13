@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from payments.psp import Providers
 
 # Base Settings
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,6 +26,9 @@ ROOT_URLCONF = 'graphapi.urls'
 ALLOWED_HOSTS = ['*']
 APPEND_SLASH = False
 AUTH_USER_MODEL = 'users.User'
+
+# Psp Settings
+PSP = Providers.IYZICO
 
 # Urls
 BACKEND_URL = "http://127.0.0.1:9000"
