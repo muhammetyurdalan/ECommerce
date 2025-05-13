@@ -8,7 +8,7 @@ from products.inputs import AdminUpdateOrderInput, CreateOrderInput, UpdateOrder
 from products.utils import set_attributes
 
 manager= Order.objects
-item_manger= OrderItem.objects
+item_manager= OrderItem.objects
 variation_manager= ProductVariation.objects
 
 
@@ -62,7 +62,7 @@ class CreateOrder(graphene.Mutation):
             order_items.append(order_item)
             variation = variation_manager.get(pk=item_data.product_variation_id)
             assert variation.stock >= item_data.quantity, "Not enough stock"
-        item_manger.bulk_create(order_items)
+        item_manager.bulk_create(order_items)
         response = psp.payment_process(data, customer, order)
         if response['status'] == 'success':
             order.status = 'PROCESSING'

@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-from payments.psp import Providers
+from graphapi.payments.psp import Providers
 
 # Base Settings
 BASE_DIR = Path(__file__).resolve().parent.parent

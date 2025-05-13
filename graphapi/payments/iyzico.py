@@ -1,4 +1,4 @@
-from base import IPayment
+from graphapi.payments.base import IPayment
 import iyzipay
 import json
 from django.conf import settings
