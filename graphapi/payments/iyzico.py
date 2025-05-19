@@ -12,7 +12,7 @@ class Iyzico(IPayment):
     Iyzico payment processing class.
     """
 
-    def __init__(self, customer, order):
+    def __init__(self, order=None, customer=None):
         self.headers = {
             'api_key': api_key,
             'secret_key': secret_key,
@@ -20,7 +20,7 @@ class Iyzico(IPayment):
         }
         self.customer = customer
         self.order = order
-        self.payment_data = None
+        self.process_payment_data = {}
         self.response = None
 
     def get_basket_items(self):
@@ -71,7 +71,7 @@ class Iyzico(IPayment):
             "basketId": str(self.order.id),
             "paymentChannel": "WEB",
             "paymentGroup": "PRODUCT",
-            "conversationId": "ecommerce",
+            "conversationId": "order#" + str(self.order.id),
             "paymentCard": card,
             "buyer": buyer,
             "shippingAddress": address,
@@ -80,14 +80,14 @@ class Iyzico(IPayment):
             "currency": "TRY",
             "callbackUrl": settings.BACKEND_URL + '/process_payment_return/'
         }
-        self.payment_data = payment_data
+        self.process_payment_data = payment_data
 
     def process_payment(self, data) -> bool:
         self.initialize_payment(data)
+        # print(self.process_payment_data)
         payment = iyzipay.Payment()
-        response = payment.create(self.payment_data, self.headers)
-        response = json.load(response)
-        self.response = response
+        response = payment.create(self.process_payment_data, self.headers)
+        self.response = json.load(response)
         return True
     
     def cancel_payment(self) -> bool:
@@ -117,7 +117,7 @@ class Iyzico(IPayment):
         if not self.response:
             return None
         return {
-            'status': self.response.get('status', '') == 'success',
+            'status': self.response.get('status', ''),
             'order_id': self.response.get('paymentId', ''),
             'error_code': self.response.get('errorCode', ''),
             'error_message': self.response.get('errorMessage', ''),

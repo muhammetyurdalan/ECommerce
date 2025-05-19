@@ -28,7 +28,7 @@ APPEND_SLASH = False
 AUTH_USER_MODEL = 'users.User'
 
 # Psp Settings
-PSP = Providers.IYZICO
+PAYMENT_PROVIDER = Providers.IYZICO
 
 # Urls
 BACKEND_URL = "http://127.0.0.1:9000"
