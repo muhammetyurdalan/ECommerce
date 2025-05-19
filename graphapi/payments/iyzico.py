@@ -94,14 +94,13 @@ class Iyzico(IPayment):
         if self.order.payment_id == '':
             return False
         request = {
-        "locale": "tr",
-        'conversationId': 'ecommerce',
-        'paymentId': self.order.payment_id,
+            "locale": "tr",
+            'conversationId': 'order#' + str(self.order.id),
+            'paymentId': self.order.payment_id,
         }
         cancel = iyzipay.Cancel()
         response = cancel.create(request, self.headers)
-        response = json.load(response)
-        self.response = response
+        self.response = json.load(response)
         return True
 
     def refund_payment(self, payment_id: str, amount: float) -> bool:

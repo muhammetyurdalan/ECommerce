@@ -15,7 +15,7 @@ variation_manager= ProductVariation.objects
 class Query(ObjectType):
     orders = graphene.List(OrderType)
     order = graphene.Field(OrderType,
-                           id=graphene.Int(required=True))
+        id=graphene.Int(required=True))
 
     def resolve_orders(self, info, **kwargs):
         return Order.objects.all()
@@ -85,9 +85,12 @@ class CancelOrder(graphene.Mutation):
     @roles_required('CUSTOMER')
     def mutate(self, info, **kwargs):
         id = kwargs.get('id')
+        customer = info.context.user
         order = Order.objects.get(pk=id)
+        assert order.user == customer, "Not authorized"
         assert order.status == 'PROCESSING', "Order cannot be cancelled"
-        response = psp.cancel_payment(order)
+        psp = PaymentService(order=order)
+        response = psp.cancel_payment().get_response()
         assert response['status'] == 'success', "Payment cancellation failed"
         order.status = 'CANCELLED'
         order.save()
