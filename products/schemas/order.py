@@ -1,5 +1,5 @@
 import graphene
-import graphapi.psp as psp
+from graphapi.payments.psp import PaymentService
 from graphene import ObjectType
 from products.decorators import roles_required
 from products.models import Order, OrderItem, ProductVariation
@@ -15,7 +15,7 @@ variation_manager= ProductVariation.objects
 class Query(ObjectType):
     orders = graphene.List(OrderType)
     order = graphene.Field(OrderType,
-                           id=graphene.Int(required=True))
+        id=graphene.Int(required=True))
 
     def resolve_orders(self, info, **kwargs):
         from json import dumps
@@ -65,10 +65,11 @@ class CreateOrder(graphene.Mutation):
             variation = variation_manager.get(pk=item_data.product_variation_id)
             assert variation.stock >= item_data.quantity, "Not enough stock"
         item_manager.bulk_create(order_items)
-        response = psp.payment_process(data, customer, order)
+        psp = PaymentService(customer=customer, order=order)
+        response = psp.process_payment(data).get_response()
         if response['status'] == 'success':
             order.status = 'PROCESSING'
-            order.payment_id = response['paymentId']
+            order.payment_id = response['order_id']
             order.save()
             decrease_stock(order)
         else:
@@ -86,9 +87,12 @@ class CancelOrder(graphene.Mutation):
     @roles_required('CUSTOMER')
     def mutate(self, info, **kwargs):
         id = kwargs.get('id')
+        customer = info.context.user
         order = Order.objects.get(pk=id)
+        assert order.user == customer, "Not authorized"
         assert order.status == 'PROCESSING', "Order cannot be cancelled"
-        response = psp.cancel_payment(order)
+        psp = PaymentService(order=order)
+        response = psp.cancel_payment().get_response()
         assert response['status'] == 'success', "Payment cancellation failed"
         order.status = 'CANCELLED'
         order.save()
