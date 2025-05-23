@@ -18,6 +18,8 @@ class Query(ObjectType):
                            id=graphene.Int(required=True))
 
     def resolve_orders(self, info, **kwargs):
+        from json import dumps
+        assert 1 != 1, dumps({"code": "ERR001"})
         return Order.objects.all()
 
     def resolve_order(self, info, **kwargs):
