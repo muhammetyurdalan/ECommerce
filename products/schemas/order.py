@@ -19,7 +19,7 @@ class Query(ObjectType):
 
     def resolve_orders(self, info, **kwargs):
         from json import dumps
-        assert 1 != 1, dumps({"code": "ERR001"})
+        assert 1 != 1, dumps({"code": "ERR004"})
         return Order.objects.all()
 
     def resolve_order(self, info, **kwargs):

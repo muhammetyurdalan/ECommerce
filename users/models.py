@@ -7,11 +7,17 @@ from django.contrib.auth.base_user import BaseUserManager
 class City(models.Model):
     name = models.CharField(max_length=50)
 
+
 class Role(models.TextChoices):
     MANAGER = 'MANAGER', 'YÖNETİCİ'
     CUSTOMER = 'CUSTOMER', 'MÜŞTERİ'
     SELLER = 'SELLER', 'SATICI'
     ADMIN = 'ADMIN', 'ADMİN'
+
+
+class Language(models.TextChoices):
+    tr = 'tr'
+    en = 'en'
     
 
 class UserManager(BaseUserManager):
@@ -31,6 +37,7 @@ class User(AbstractBaseUser):
     role = models.CharField(max_length=20, choices=Role.choices)
     username = models.CharField(max_length=20, unique=True)
     email = models.CharField(max_length=100)
+    language = models.CharField(max_length=2, choices=Language.choices, default='tr')
     phone = models.CharField(max_length=20, blank=True)
     first_name = models.CharField(max_length=40, blank=True)
     last_name = models.CharField(max_length=40, blank=True)
