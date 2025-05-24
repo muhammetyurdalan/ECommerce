@@ -1,5 +1,5 @@
 import graphene
-from graphapi.payments.psp import PaymentService
+from graphapi.payments.service import PaymentService
 from graphene import ObjectType
 from products.decorators import roles_required
 from products.models import Order, OrderItem, ProductVariation
